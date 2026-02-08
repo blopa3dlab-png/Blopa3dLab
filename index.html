@@ -1,26 +1,53 @@
-<!-- refresh github pages -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <base href="/Blopa3dLab/">
-
   <title>Blopa3dLab</title>
 
-  <link rel="icon" href="./Blopa3dLab_files/logo_v3.d98750a7c406dd97e5db.png">
-  <link rel="stylesheet" href="./Blopa3dLab_files/index-U4LRPuN4.css">
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fuente bonita (opcional) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+  </style>
 </head>
 
-<body>
+<body class="bg-white text-stone-800">
 
+<!-- ===== CONTENIDO PEGADO ===== -->
+<!-- PEGA AQUÍ TODO EL <div id="root"> ... </div> -->
+<!-- OJO: NO PEGUES el badge de Base44 -->
+
+<!-- EJEMPLO -->
 <div id="root">
-<!-- TU CONTENIDO SE QUEDA IGUAL -->
-<!-- (No hace falta tocar nada del body que pegaste) -->
+  <!-- TODO TU CONTENIDO QUE YA HAS PEGADO -->
 </div>
 
-<script type="module" src="Blopa3dLab_files/index-Bi7kfJj7.js"></script>
+<!-- ===== FIN CONTENIDO ===== -->
+
+<!-- Scroll suave -->
+<script>
+  document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const text = btn.textContent.toLowerCase()
+      if (text.includes('servicios')) {
+        document.getElementById('servicios')?.scrollIntoView({ behavior: 'smooth' })
+      }
+      if (text.includes('portfolio')) {
+        document.getElementById('galeria')?.scrollIntoView({ behavior: 'smooth' })
+      }
+      if (text.includes('contacto')) {
+        document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' })
+      }
+    })
+  })
+</script>
 
 </body>
 </html>
