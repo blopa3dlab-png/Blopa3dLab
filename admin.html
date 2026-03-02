@@ -5,31 +5,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin - Blopa3dLab</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase SDKs -->
+  <!-- Firebase SDKs (añadimos Auth) -->
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
   <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
 </head>
 <body class="bg-stone-50 text-stone-800">
+
+  <!-- Contenedor del login (visible cuando no autenticado) -->
+  <div id="loginContainer" class="container mx-auto px-6 py-12 max-w-md">
+    <div class="bg-white p-8 rounded-3xl shadow-xl">
+      <h1 class="text-3xl font-light mb-6 text-center">Acceso administrador</h1>
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-stone-700 mb-2">Email</label>
+          <input type="email" id="loginEmail" required class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-stone-700 mb-2">Contraseña</label>
+          <input type="password" id="loginPassword" required class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500">
+        </div>
+        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl transition-all duration-300">Entrar</button>
+      </form>
+      <p id="loginError" class="text-red-500 text-sm mt-4 hidden"></p>
+    </div>
+  </div>
+
+  <!-- Contenedor del admin (solo visible cuando autenticado) -->
   <div id="adminApp" class="container mx-auto px-6 py-12 max-w-3xl hidden">
-    <a href="index.html" class="text-amber-600 hover:underline mb-8 inline-block">← Inicio</a>
+    <div class="flex justify-between items-center mb-8">
+      <a href="index.html" class="text-amber-600 hover:underline">← Inicio</a>
+      <button id="logoutBtn" class="text-sm text-stone-600 hover:text-stone-800">Cerrar sesión</button>
+    </div>
     <h1 class="text-4xl font-light mb-8">Panel de administración</h1>
 
     <form id="postForm" class="bg-white p-8 rounded-3xl shadow-xl space-y-6">
-    <div>
+      <div>
         <label class="block text-sm font-medium text-stone-700 mb-2">Fecha del post</label>
         <input type="date" id="postDate" required class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500">
-    </div>
-    <div>
+      </div>
+      <div>
         <label class="block text-sm font-medium text-stone-700 mb-2">URLs de las imágenes (opcional)</label>
         <textarea id="postImages" rows="3" placeholder="https://ejemplo.com/imagen1.jpg&#10;https://ejemplo.com/imagen2.jpg" class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500"></textarea>
         <p class="text-xs text-stone-400 mt-1">Pega una URL por línea. Puedes usar Imgur, Postimages, etc.</p>
-    </div>
-    <div>
+      </div>
+      <div>
         <label class="block text-sm font-medium text-stone-700 mb-2">Contenido del post</label>
         <textarea id="postContent" rows="6" required placeholder="Escribe aquí tu artículo..." class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500"></textarea>
-    </div>
-    <button type="submit" class="w-full bg-stone-900 hover:bg-stone-800 text-white py-3 rounded-xl transition-all duration-300">Guardar post</button>
+      </div>
+      <button type="submit" class="w-full bg-stone-900 hover:bg-stone-800 text-white py-3 rounded-xl transition-all duration-300">Guardar post</button>
     </form>
 
     <div class="mt-12">
@@ -39,44 +64,9 @@
     </div>
   </div>
 
-  <div id="loginMessage" class="container mx-auto px-6 py-12 max-w-2xl text-center">
-    <p class="text-stone-600">Autenticando...</p>
-  </div>
-
   <script>
     (function() {
-      // Credenciales fijas
-      const USERNAME = 'Pablo';
-      const PASSWORD = 'P4bl08';
-
-      // Autenticación
-      let authenticated = false;
-      for (let i = 0; i < 3; i++) {
-        const user = prompt('Usuario:');
-        if (user === null) break;
-        const pass = prompt('Contraseña:');
-        if (pass === null) break;
-        if (user === USERNAME && pass === PASSWORD) {
-          authenticated = true;
-          break;
-        } else {
-          alert('Credenciales incorrectas. Intento ' + (i+1) + ' de 3');
-        }
-      }
-
-      if (!authenticated) {
-        document.getElementById('loginMessage').innerHTML = '<p class="text-red-600">Acceso denegado. Redirigiendo...</p>';
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 2000);
-        return;
-      }
-
-      // Mostrar panel
-      document.getElementById('adminApp').classList.remove('hidden');
-      document.getElementById('loginMessage').classList.add('hidden');
-
-      // Configuración de Firebase (ajusta con la tuya)
+      // Configuración de Firebase (la misma que tienes)
       const firebaseConfig = {
         apiKey: "AIzaSyCx-t8lm-k2y7ybM8hygK8zrRfs1ri6FY",
         authDomain: "blopa3dlab-blog.firebaseapp.com",
@@ -86,25 +76,67 @@
         appId: "1:231693108798:web:361243bb2801b130d93386f",
         measurementId: "G-NTNRYG1NPR"
       };
-
       firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
       const db = firebase.firestore();
 
       const postsRef = db.collection('posts');
 
+      // Elementos del DOM
+      const loginContainer = document.getElementById('loginContainer');
+      const adminApp = document.getElementById('adminApp');
+      const loginForm = document.getElementById('loginForm');
+      const loginError = document.getElementById('loginError');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const postForm = document.getElementById('postForm');
+      const postsList = document.getElementById('postsList');
+      const clearAllBtn = document.getElementById('clearAll');
+
+      // Observar cambios en la autenticación
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          // Usuario autenticado: mostrar admin, ocultar login
+          loginContainer.classList.add('hidden');
+          adminApp.classList.remove('hidden');
+          loadPosts(); // Cargar posts al iniciar sesión
+        } else {
+          // No autenticado: mostrar login, ocultar admin
+          loginContainer.classList.remove('hidden');
+          adminApp.classList.add('hidden');
+        }
+      });
+
+      // Login
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        loginError.classList.add('hidden');
+        try {
+          await auth.signInWithEmailAndPassword(email, password);
+        } catch (error) {
+          loginError.textContent = 'Error: ' + error.message;
+          loginError.classList.remove('hidden');
+        }
+      });
+
+      // Logout
+      logoutBtn.addEventListener('click', () => {
+        auth.signOut();
+      });
+
       // Cargar posts desde Firestore
       async function loadPosts() {
         const snapshot = await postsRef.orderBy('date', 'desc').get();
-        const container = document.getElementById('postsList');
         if (snapshot.empty) {
-          container.innerHTML = '<p class="text-stone-400">No hay posts guardados.</p>';
+          postsList.innerHTML = '<p class="text-stone-400">No hay posts guardados.</p>';
           return;
         }
         let html = '';
         snapshot.forEach(doc => {
           const post = doc.data();
           const id = doc.id;
-          const images = post.images || (post.image ? [post.image] : []); // compatibilidad con posts antiguos
+          const images = post.images || (post.image ? [post.image] : []);
           html += `
             <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 relative">
               <p class="text-sm text-amber-600">${post.date || 'Sin fecha'}</p>
@@ -116,27 +148,26 @@
             </div>
           `;
         });
-        container.innerHTML = html;
+        postsList.innerHTML = html;
       }
 
-      // Guardar nuevo post en Firestore
-      document.getElementById('postForm').addEventListener('submit', async (e) => {
+      // Guardar nuevo post
+      postForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const date = document.getElementById('postDate').value;
         const imagesText = document.getElementById('postImages').value;
         const content = document.getElementById('postContent').value;
 
-        // Convertir texto en array de URLs (separadas por líneas, filtrar vacías)
         const images = imagesText.split('\n').map(url => url.trim()).filter(url => url !== '');
 
         try {
           await postsRef.add({
             date,
-            images, // guardamos como array
+            images,
             content,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
           });
-          document.getElementById('postForm').reset();
+          postForm.reset();
           loadPosts();
         } catch (error) {
           alert('Error al guardar: ' + error.message);
@@ -156,7 +187,7 @@
       };
 
       // Eliminar todos los posts
-      document.getElementById('clearAll').addEventListener('click', async () => {
+      clearAllBtn.addEventListener('click', async () => {
         if (confirm('¿Eliminar TODOS los posts? Esta acción no se puede deshacer.')) {
           try {
             const snapshot = await postsRef.get();
@@ -169,9 +200,6 @@
           }
         }
       });
-
-      // Cargar al inicio
-      loadPosts();
     })();
   </script>
 </body>
