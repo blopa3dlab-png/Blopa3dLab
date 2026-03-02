@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Blog - Blopa3dLab</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
   <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
 </head>
 <body class="bg-white text-stone-800">
   <div class="min-h-screen">
-    <!-- Enlace para volver a inicio -->
     <div class="container mx-auto px-6 py-8">
       <a href="index.html" class="text-amber-600 hover:underline">← Volver a inicio</a>
     </div>
@@ -18,7 +20,6 @@
       <div class="container mx-auto px-6">
         <h1 class="text-5xl md:text-6xl font-light text-stone-800 mb-12 text-center">Blog <span class="font-semibold">Blopa3dLab</span></h1>
         
-        <!-- Contenedor donde se mostrarán los posts guardados en localStorage -->
         <div id="blogPosts" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
         <div id="noPosts" class="text-center text-stone-400 hidden">No hay publicaciones todavía.</div>
       </div>
@@ -26,30 +27,50 @@
   </div>
 
   <script>
-    // Misma clave que usamos en admin.html
-    const STORAGE_KEY = 'blopa3dlab_posts';
+    // Configuración de Firebase (LA MISMA QUE EN ADMIN)
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_AUTH_DOMAIN",
+      projectId: "TU_PROJECT_ID",
+      storageBucket: "TU_STORAGE_BUCKET",
+      messagingSenderId: "TU_MESSAGING_SENDER_ID",
+      appId: "TU_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    function renderPosts() {
-      const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    async function renderPosts() {
       const container = document.getElementById('blogPosts');
       const noPosts = document.getElementById('noPosts');
 
-      if (posts.length === 0) {
-        container.innerHTML = '';
-        noPosts.classList.remove('hidden');
-        return;
-      }
+      try {
+        const snapshot = await db.collection('posts').orderBy('date', 'desc').get();
+        
+        if (snapshot.empty) {
+          container.innerHTML = '';
+          noPosts.classList.remove('hidden');
+          return;
+        }
 
-      noPosts.classList.add('hidden');
-      container.innerHTML = posts.map(post => `
-        <div class="bg-stone-50 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-          ${post.image ? `<img src="${post.image}" alt="Post" class="w-full h-48 object-cover">` : ''}
-          <div class="p-6">
-            <p class="text-sm text-amber-600 mb-2">${post.date || 'Fecha no disponible'}</p>
-            <p class="text-stone-700 leading-relaxed">${post.content.replace(/\n/g, '<br>')}</p>
-          </div>
-        </div>
-      `).join('');
+        noPosts.classList.add('hidden');
+        let html = '';
+        snapshot.forEach(doc => {
+          const post = doc.data();
+          html += `
+            <div class="bg-stone-50 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              ${post.image ? `<img src="${post.image}" alt="Post" class="w-full h-48 object-cover">` : ''}
+              <div class="p-6">
+                <p class="text-sm text-amber-600 mb-2">${post.date || 'Fecha no disponible'}</p>
+                <p class="text-stone-700 leading-relaxed whitespace-pre-line">${post.content}</p>
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      } catch (error) {
+        console.error('Error cargando posts:', error);
+        container.innerHTML = '<p class="text-red-500">Error al cargar los posts.</p>';
+      }
     }
 
     renderPosts();
