@@ -9,7 +9,7 @@
 </head>
 <body class="bg-stone-50 text-stone-800">
   <div class="container mx-auto px-6 py-12 max-w-2xl">
-    <a href="/" class="text-amber-600 hover:underline mb-8 inline-block">← Inicio</a>
+    <a href="index.html" class="text-amber-600 hover:underline mb-8 inline-block">← Inicio</a>
     <h1 class="text-4xl font-light mb-8">Panel de administración</h1>
 
     <form id="postForm" class="bg-white p-8 rounded-3xl shadow-xl space-y-6">
@@ -37,10 +37,8 @@
   </div>
 
   <script>
-    // Clave para localStorage
     const STORAGE_KEY = 'blopa3dlab_posts';
 
-    // Cargar posts al iniciar
     function loadPosts() {
       const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       const container = document.getElementById('postsList');
@@ -58,7 +56,6 @@
       `).join('');
     }
 
-    // Guardar nuevo post
     document.getElementById('postForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const date = document.getElementById('postDate').value;
@@ -69,12 +66,10 @@
       posts.push({ date, image, content });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
 
-      // Resetear formulario
       e.target.reset();
       loadPosts();
     });
 
-    // Eliminar un post
     window.deletePost = (index) => {
       const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       posts.splice(index, 1);
@@ -82,7 +77,6 @@
       loadPosts();
     };
 
-    // Eliminar todos
     document.getElementById('clearAll').addEventListener('click', () => {
       if (confirm('¿Eliminar todos los posts?')) {
         localStorage.removeItem(STORAGE_KEY);
@@ -90,7 +84,6 @@
       }
     });
 
-    // Cargar al inicio
     loadPosts();
   </script>
 </body>
