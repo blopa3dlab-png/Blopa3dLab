@@ -27,14 +27,14 @@
   </div>
 
   <script>
-    // Configuración de Firebase (LA MISMA QUE EN ADMIN)
+    // Configuración de Firebase (ajusta con la tuya)
     const firebaseConfig = {
-      apiKey: "AIzaSyCy-t81m-k2y7ybeM8hygK8ZrRFs1riGFY",
+      apiKey: "AIzaSyCx-t8lm-k2y7ybM8hygK8zrRfs1ri6FY",
       authDomain: "blopa3dlab-blog.firebaseapp.com",
       projectId: "blopa3dlab-blog",
       storageBucket: "blopa3dlab-blog.firebasestorage.app",
       messagingSenderId: "231693108798",
-      appId: "1:231693108798:web:361243bb2801b130d9336f",
+      appId: "1:231693108798:web:361243bb2801b130d93386f",
       measurementId: "G-NTNRYG1NPR"
     };
     firebase.initializeApp(firebaseConfig);
@@ -57,9 +57,23 @@
         let html = '';
         snapshot.forEach(doc => {
           const post = doc.data();
+          // Compatibilidad con posts antiguos (que tenían 'image' en lugar de 'images')
+          const images = post.images || (post.image ? [post.image] : []);
+          
+          // Generar el HTML de las imágenes
+          const imagesHtml = images.length > 0 ? `
+            <div class="grid grid-cols-${Math.min(images.length, 2)} gap-2 mb-4">
+              ${images.map(img => `
+                <div class="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg bg-stone-100">
+                  <img src="${img}" alt="Imagen del post" class="w-full h-full object-contain">
+                </div>
+              `).join('')}
+            </div>
+          ` : '';
+
           html += `
             <div class="bg-stone-50 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-              ${post.image ? `<img src="${post.image}" alt="Post" class="w-full h-48 object-cover">` : ''}
+              ${imagesHtml}
               <div class="p-6">
                 <p class="text-sm text-amber-600 mb-2">${post.date || 'Fecha no disponible'}</p>
                 <p class="text-stone-700 leading-relaxed whitespace-pre-line">${post.content}</p>

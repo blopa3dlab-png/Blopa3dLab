@@ -11,7 +11,7 @@
   <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
 </head>
 <body class="bg-stone-50 text-stone-800">
-  <div id="adminApp" class="container mx-auto px-6 py-12 max-w-2xl hidden">
+  <div id="adminApp" class="container mx-auto px-6 py-12 max-w-3xl hidden">
     <a href="index.html" class="text-amber-600 hover:underline mb-8 inline-block">← Inicio</a>
     <h1 class="text-4xl font-light mb-8">Panel de administración</h1>
 
@@ -21,9 +21,9 @@
         <input type="date" id="postDate" required class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500">
       </div>
       <div>
-        <label class="block text-sm font-medium text-stone-700 mb-2">URL de la imagen (opcional)</label>
-        <input type="url" id="postImage" placeholder="https://ejemplo.com/imagen.jpg" class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500">
-        <p class="text-xs text-stone-400 mt-1">Puedes usar una imagen de Unsplash o subirla a un servicio gratuito (Imgur, Postimages) y pegar el enlace.</p>
+        <label class="block text-sm font-medium text-stone-700 mb-2">URLs de las imágenes (una por línea, opcional)</label>
+        <textarea id="postImages" rows="4" placeholder="https://ejemplo.com/imagen1.jpg&#10;https://ejemplo.com/imagen2.jpg" class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500"></textarea>
+        <p class="text-xs text-stone-400 mt-1">Cada URL en una línea. Puedes usar Imgur, Postimages, etc.</p>
       </div>
       <div>
         <label class="block text-sm font-medium text-stone-700 mb-2">Contenido del post</label>
@@ -49,7 +49,7 @@
       const USERNAME = 'Pablo';
       const PASSWORD = 'P4bl08';
 
-      // Autenticación (igual que antes)
+      // Autenticación
       let authenticated = false;
       for (let i = 0; i < 3; i++) {
         const user = prompt('Usuario:');
@@ -76,21 +76,20 @@
       document.getElementById('adminApp').classList.remove('hidden');
       document.getElementById('loginMessage').classList.add('hidden');
 
-      // Inicializar Firebase (REEMPLAZA CON TU CONFIGURACIÓN)
+      // Configuración de Firebase (ajusta con la tuya)
       const firebaseConfig = {
-        apiKey: "AIzaSyCy-t81m-k2y7ybeM8hygK8ZrRFs1riGFY",
+        apiKey: "AIzaSyCx-t8lm-k2y7ybM8hygK8zrRfs1ri6FY",
         authDomain: "blopa3dlab-blog.firebaseapp.com",
         projectId: "blopa3dlab-blog",
         storageBucket: "blopa3dlab-blog.firebasestorage.app",
         messagingSenderId: "231693108798",
-        appId: "1:231693108798:web:361243bb2801b130d9336f",
+        appId: "1:231693108798:web:361243bb2801b130d93386f",
         measurementId: "G-NTNRYG1NPR"
       };
 
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
 
-      // Referencia a la colección "posts"
       const postsRef = db.collection('posts');
 
       // Cargar posts desde Firestore
@@ -105,10 +104,13 @@
         snapshot.forEach(doc => {
           const post = doc.data();
           const id = doc.id;
+          const images = post.images || (post.image ? [post.image] : []); // compatibilidad con posts antiguos
           html += `
             <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 relative">
               <p class="text-sm text-amber-600">${post.date || 'Sin fecha'}</p>
-              ${post.image ? `<img src="${post.image}" alt="Post" class="w-full h-32 object-cover rounded-lg my-2">` : ''}
+              <div class="flex flex-wrap gap-2 my-2">
+                ${images.map(img => `<img src="${img}" alt="Post" class="w-20 h-20 object-cover rounded-lg">`).join('')}
+              </div>
               <p class="text-stone-700 mt-2">${post.content.substring(0, 100)}${post.content.length > 100 ? '…' : ''}</p>
               <button onclick="deletePost('${id}')" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm">Eliminar</button>
             </div>
@@ -121,13 +123,16 @@
       document.getElementById('postForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const date = document.getElementById('postDate').value;
-        const image = document.getElementById('postImage').value;
+        const imagesText = document.getElementById('postImages').value;
         const content = document.getElementById('postContent').value;
+
+        // Convertir texto en array de URLs (separadas por líneas, filtrar vacías)
+        const images = imagesText.split('\n').map(url => url.trim()).filter(url => url !== '');
 
         try {
           await postsRef.add({
             date,
-            image,
+            images, // guardamos como array
             content,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
           });
