@@ -9,13 +9,16 @@
 </head>
 <body class="bg-white text-stone-800">
   <div class="min-h-screen">
+    <!-- Enlace para volver a inicio -->
     <div class="container mx-auto px-6 py-8">
-      <a href="/" class="text-amber-600 hover:underline">← Volver a inicio</a>
+      <a href="index.html" class="text-amber-600 hover:underline">← Volver a inicio</a>
     </div>
 
     <section class="py-24 md:py-32 bg-white">
       <div class="container mx-auto px-6">
         <h1 class="text-5xl md:text-6xl font-light text-stone-800 mb-12 text-center">Blog <span class="font-semibold">Blopa3dLab</span></h1>
+        
+        <!-- Contenedor donde se mostrarán los posts guardados en localStorage -->
         <div id="blogPosts" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
         <div id="noPosts" class="text-center text-stone-400 hidden">No hay publicaciones todavía.</div>
       </div>
@@ -23,6 +26,7 @@
   </div>
 
   <script>
+    // Misma clave que usamos en admin.html
     const STORAGE_KEY = 'blopa3dlab_posts';
 
     function renderPosts() {
