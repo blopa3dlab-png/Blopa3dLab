@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog - Blopa3dLab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
+</head>
+<body class="bg-white text-stone-800">
+  <div class="min-h-screen">
+    <div class="container mx-auto px-6 py-8">
+      <a href="/" class="text-amber-600 hover:underline">← Volver a inicio</a>
+    </div>
+
+    <section class="py-24 md:py-32 bg-white">
+      <div class="container mx-auto px-6">
+        <h1 class="text-5xl md:text-6xl font-light text-stone-800 mb-12 text-center">Blog <span class="font-semibold">Blopa3dLab</span></h1>
+        <div id="blogPosts" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+        <div id="noPosts" class="text-center text-stone-400 hidden">No hay publicaciones todavía.</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'blopa3dlab_posts';
+
+    function renderPosts() {
+      const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const container = document.getElementById('blogPosts');
+      const noPosts = document.getElementById('noPosts');
+
+      if (posts.length === 0) {
+        container.innerHTML = '';
+        noPosts.classList.remove('hidden');
+        return;
+      }
+
+      noPosts.classList.add('hidden');
+      container.innerHTML = posts.map(post => `
+        <div class="bg-stone-50 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          ${post.image ? `<img src="${post.image}" alt="Post" class="w-full h-48 object-cover">` : ''}
+          <div class="p-6">
+            <p class="text-sm text-amber-600 mb-2">${post.date || 'Fecha no disponible'}</p>
+            <p class="text-stone-700 leading-relaxed">${post.content.replace(/\n/g, '<br>')}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    renderPosts();
+  </script>
+</body>
+</html>

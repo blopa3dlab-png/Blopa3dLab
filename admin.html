@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Blopa3dLab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
+</head>
+<body class="bg-stone-50 text-stone-800">
+  <div class="container mx-auto px-6 py-12 max-w-2xl">
+    <a href="/" class="text-amber-600 hover:underline mb-8 inline-block">← Inicio</a>
+    <h1 class="text-4xl font-light mb-8">Panel de administración</h1>
+
+    <form id="postForm" class="bg-white p-8 rounded-3xl shadow-xl space-y-6">
+      <div>
+        <label class="block text-sm font-medium text-stone-700 mb-2">Fecha del post</label>
+        <input type="date" id="postDate" required class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-stone-700 mb-2">URL de la imagen (opcional)</label>
+        <input type="url" id="postImage" placeholder="https://ejemplo.com/imagen.jpg" class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500">
+        <p class="text-xs text-stone-400 mt-1">Puedes usar una imagen de Unsplash o de tu galería actual.</p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-stone-700 mb-2">Contenido del post</label>
+        <textarea id="postContent" rows="6" required placeholder="Escribe aquí tu artículo..." class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500"></textarea>
+      </div>
+      <button type="submit" class="w-full bg-stone-900 hover:bg-stone-800 text-white py-3 rounded-xl transition-all duration-300">Guardar post</button>
+    </form>
+
+    <div class="mt-12">
+      <h2 class="text-2xl font-light mb-4">Posts guardados</h2>
+      <div id="postsList" class="space-y-4"></div>
+      <button id="clearAll" class="mt-4 text-sm text-red-600 hover:underline">Eliminar todos los posts</button>
+    </div>
+  </div>
+
+  <script>
+    // Clave para localStorage
+    const STORAGE_KEY = 'blopa3dlab_posts';
+
+    // Cargar posts al iniciar
+    function loadPosts() {
+      const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const container = document.getElementById('postsList');
+      if (posts.length === 0) {
+        container.innerHTML = '<p class="text-stone-400">No hay posts guardados.</p>';
+        return;
+      }
+      container.innerHTML = posts.map((post, index) => `
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 relative">
+          <p class="text-sm text-amber-600">${post.date || 'Sin fecha'}</p>
+          ${post.image ? `<img src="${post.image}" alt="Post" class="w-full h-32 object-cover rounded-lg my-2">` : ''}
+          <p class="text-stone-700 mt-2">${post.content.substring(0, 100)}${post.content.length > 100 ? '…' : ''}</p>
+          <button onclick="deletePost(${index})" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm">Eliminar</button>
+        </div>
+      `).join('');
+    }
+
+    // Guardar nuevo post
+    document.getElementById('postForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const date = document.getElementById('postDate').value;
+      const image = document.getElementById('postImage').value;
+      const content = document.getElementById('postContent').value;
+
+      const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      posts.push({ date, image, content });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+
+      // Resetear formulario
+      e.target.reset();
+      loadPosts();
+    });
+
+    // Eliminar un post
+    window.deletePost = (index) => {
+      const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      posts.splice(index, 1);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+      loadPosts();
+    };
+
+    // Eliminar todos
+    document.getElementById('clearAll').addEventListener('click', () => {
+      if (confirm('¿Eliminar todos los posts?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        loadPosts();
+      }
+    });
+
+    // Cargar al inicio
+    loadPosts();
+  </script>
+</body>
+</html>
