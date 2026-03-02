@@ -8,7 +8,19 @@
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-  <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    /* Para que las imágenes individuales no se deformen */
+    .post-image-container {
+      max-height: 400px;
+      overflow: hidden;
+    }
+    @media (max-width: 640px) {
+      .post-image-container {
+        max-height: 300px;
+      }
+    }
+  </style>
 </head>
 <body class="bg-white text-stone-800">
   <div class="min-h-screen">
@@ -27,7 +39,7 @@
   </div>
 
   <script>
-    // Configuración de Firebase (ajusta con la tuya)
+    // Configuración de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCx-t8lm-k2y7ybM8hygK8zrRfs1ri6FY",
       authDomain: "blopa3dlab-blog.firebaseapp.com",
@@ -60,23 +72,35 @@
           // Compatibilidad con posts antiguos (que tenían 'image' en lugar de 'images')
           const images = post.images || (post.image ? [post.image] : []);
           
-          // Generar el HTML de las imágenes
-          const imagesHtml = images.length > 0 ? `
-            <div class="grid grid-cols-${Math.min(images.length, 2)} gap-2 mb-4">
-              ${images.map(img => `
-                <div class="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg bg-stone-100">
-                  <img src="${img}" alt="Imagen del post" class="w-full h-full object-contain">
-                </div>
-              `).join('')}
-            </div>
-          ` : '';
+          // Generar HTML de las imágenes según la cantidad
+          let imagesHtml = '';
+          if (images.length === 1) {
+            // Una sola imagen: se muestra grande y centrada
+            imagesHtml = `
+              <div class="post-image-container w-full bg-stone-100">
+                <img src="${images[0]}" alt="Imagen del post" class="w-full h-full object-contain">
+              </div>
+            `;
+          } else if (images.length > 1) {
+            // Múltiples imágenes: cuadrícula responsive
+            const cols = images.length === 2 ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3';
+            imagesHtml = `
+              <div class="grid ${cols} gap-2 p-2">
+                ${images.map(img => `
+                  <div class="aspect-square overflow-hidden bg-stone-100 rounded-lg">
+                    <img src="${img}" alt="Imagen del post" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                  </div>
+                `).join('')}
+              </div>
+            `;
+          }
 
           html += `
             <div class="bg-stone-50 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
               ${imagesHtml}
               <div class="p-6">
                 <p class="text-sm text-amber-600 mb-2">${post.date || 'Fecha no disponible'}</p>
-                <p class="text-stone-700 leading-relaxed whitespace-pre-line">${post.content}</p>
+                <div class="text-stone-700 leading-relaxed whitespace-pre-line">${post.content}</div>
               </div>
             </div>
           `;
@@ -84,7 +108,7 @@
         container.innerHTML = html;
       } catch (error) {
         console.error('Error cargando posts:', error);
-        container.innerHTML = '<p class="text-red-500">Error al cargar los posts.</p>';
+        container.innerHTML = '<p class="text-red-500">Error al cargar los posts. Intenta más tarde.</p>';
       }
     }
 
