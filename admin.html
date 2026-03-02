@@ -8,7 +8,7 @@
   <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
 </head>
 <body class="bg-stone-50 text-stone-800">
-  <div class="container mx-auto px-6 py-12 max-w-2xl">
+  <div id="adminApp" class="container mx-auto px-6 py-12 max-w-2xl hidden">
     <a href="index.html" class="text-amber-600 hover:underline mb-8 inline-block">← Inicio</a>
     <h1 class="text-4xl font-light mb-8">Panel de administración</h1>
 
@@ -18,9 +18,9 @@
         <input type="date" id="postDate" required class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500">
       </div>
       <div>
-        <label class="block text-sm font-medium text-stone-700 mb-2">URL de la imagen (opcional)</label>
-        <input type="url" id="postImage" placeholder="https://ejemplo.com/imagen.jpg" class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500">
-        <p class="text-xs text-stone-400 mt-1">Puedes usar una imagen de Unsplash o de tu galería actual.</p>
+        <label class="block text-sm font-medium text-stone-700 mb-2">Imagen del post (opcional)</label>
+        <input type="file" id="postImage" accept="image/*" class="w-full border border-stone-200 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500">
+        <p class="text-xs text-stone-400 mt-1">Selecciona una imagen desde tu dispositivo.</p>
       </div>
       <div>
         <label class="block text-sm font-medium text-stone-700 mb-2">Contenido del post</label>
@@ -36,55 +36,115 @@
     </div>
   </div>
 
+  <div id="loginMessage" class="container mx-auto px-6 py-12 max-w-2xl text-center">
+    <p class="text-stone-600">Autenticando...</p>
+  </div>
+
   <script>
-    const STORAGE_KEY = 'blopa3dlab_posts';
+    (function() {
+      // Credenciales fijas
+      const USERNAME = 'Pablo';
+      const PASSWORD = 'P4bl08';
 
-    function loadPosts() {
-      const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      const container = document.getElementById('postsList');
-      if (posts.length === 0) {
-        container.innerHTML = '<p class="text-stone-400">No hay posts guardados.</p>';
-        return;
+      // Comprobar autenticación
+      let authenticated = false;
+      // Intentar hasta 3 veces (por si el usuario cancela)
+      for (let i = 0; i < 3; i++) {
+        const user = prompt('Usuario:');
+        if (user === null) break; // Cancelar
+        const pass = prompt('Contraseña:');
+        if (pass === null) break;
+        if (user === USERNAME && pass === PASSWORD) {
+          authenticated = true;
+          break;
+        } else {
+          alert('Credenciales incorrectas. Intento ' + (i+1) + ' de 3');
+        }
       }
-      container.innerHTML = posts.map((post, index) => `
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 relative">
-          <p class="text-sm text-amber-600">${post.date || 'Sin fecha'}</p>
-          ${post.image ? `<img src="${post.image}" alt="Post" class="w-full h-32 object-cover rounded-lg my-2">` : ''}
-          <p class="text-stone-700 mt-2">${post.content.substring(0, 100)}${post.content.length > 100 ? '…' : ''}</p>
-          <button onclick="deletePost(${index})" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm">Eliminar</button>
-        </div>
-      `).join('');
-    }
 
-    document.getElementById('postForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const date = document.getElementById('postDate').value;
-      const image = document.getElementById('postImage').value;
-      const content = document.getElementById('postContent').value;
+      if (!authenticated) {
+        document.getElementById('loginMessage').innerHTML = '<p class="text-red-600">Acceso denegado. Redirigiendo...</p>';
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 2000);
+      } else {
+        // Mostrar el panel de admin
+        document.getElementById('adminApp').classList.remove('hidden');
+        document.getElementById('loginMessage').classList.add('hidden');
 
-      const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      posts.push({ date, image, content });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+        // Clave para localStorage
+        const STORAGE_KEY = 'blopa3dlab_posts';
 
-      e.target.reset();
-      loadPosts();
-    });
+        // Cargar posts al iniciar
+        function loadPosts() {
+          const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+          const container = document.getElementById('postsList');
+          if (posts.length === 0) {
+            container.innerHTML = '<p class="text-stone-400">No hay posts guardados.</p>';
+            return;
+          }
+          container.innerHTML = posts.map((post, index) => `
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 relative">
+              <p class="text-sm text-amber-600">${post.date || 'Sin fecha'}</p>
+              ${post.image ? `<img src="${post.image}" alt="Post" class="w-full h-32 object-cover rounded-lg my-2">` : ''}
+              <p class="text-stone-700 mt-2">${post.content.substring(0, 100)}${post.content.length > 100 ? '…' : ''}</p>
+              <button onclick="deletePost(${index})" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm">Eliminar</button>
+            </div>
+          `).join('');
+        }
 
-    window.deletePost = (index) => {
-      const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      posts.splice(index, 1);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
-      loadPosts();
-    };
+        // Guardar nuevo post
+        document.getElementById('postForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const date = document.getElementById('postDate').value;
+          const fileInput = document.getElementById('postImage');
+          const content = document.getElementById('postContent').value;
 
-    document.getElementById('clearAll').addEventListener('click', () => {
-      if (confirm('¿Eliminar todos los posts?')) {
-        localStorage.removeItem(STORAGE_KEY);
+          // Si hay archivo, leerlo como base64
+          if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+              const imageBase64 = event.target.result;
+              savePost(date, imageBase64, content);
+            };
+            reader.readAsDataURL(file);
+          } else {
+            // Sin imagen
+            savePost(date, null, content);
+          }
+        });
+
+        function savePost(date, imageBase64, content) {
+          const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+          posts.push({ date, image: imageBase64, content });
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+
+          // Resetear formulario
+          document.getElementById('postForm').reset();
+          loadPosts();
+        }
+
+        // Eliminar un post
+        window.deletePost = (index) => {
+          const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+          posts.splice(index, 1);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+          loadPosts();
+        };
+
+        // Eliminar todos
+        document.getElementById('clearAll').addEventListener('click', () => {
+          if (confirm('¿Eliminar todos los posts?')) {
+            localStorage.removeItem(STORAGE_KEY);
+            loadPosts();
+          }
+        });
+
+        // Cargar al inicio
         loadPosts();
       }
-    });
-
-    loadPosts();
+    })();
   </script>
 </body>
 </html>
