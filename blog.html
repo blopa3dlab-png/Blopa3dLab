@@ -10,7 +10,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
   <style>
     body { font-family: 'Inter', system-ui, sans-serif; }
-    /* Para que las imágenes individuales no se deformen */
     .post-image-container {
       max-height: 400px;
       overflow: hidden;
@@ -39,16 +38,17 @@
   </div>
 
   <script>
-    // Configuración de Firebase
+    // Configuración de Firebase unificada
     const firebaseConfig = {
-      apiKey: "AIzaSyCx-t8lm-k2y7ybM8hygK8zrRfs1ri6FY",
-      authDomain: "blopa3dlab-blog.firebaseapp.com",
-      projectId: "blopa3dlab-blog",
-      storageBucket: "blopa3dlab-blog.firebasestorage.app",
-      messagingSenderId: "231693108798",
-      appId: "1:231693108798:web:361243bb2801b130d93386f",
-      measurementId: "G-NTNRYG1NPR"
+      apiKey: "AIzaSyC82xm1zYRhSITO-gUwnydD7v_LtI3zkXc",
+      authDomain: "blopa-defini.firebaseapp.com",
+      projectId: "blopa-defini",
+      storageBucket: "blopa-defini.firebasestorage.app",
+      messagingSenderId: "818569932873",
+      appId: "1:818569932873:web:816525469e38099e834f98",
+      measurementId: "G-3PGXWGXW83"
     };
+    
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
@@ -69,20 +69,16 @@
         let html = '';
         snapshot.forEach(doc => {
           const post = doc.data();
-          // Compatibilidad con posts antiguos (que tenían 'image' en lugar de 'images')
           const images = post.images || (post.image ? [post.image] : []);
           
-          // Generar HTML de las imágenes según la cantidad
           let imagesHtml = '';
           if (images.length === 1) {
-            // Una sola imagen: se muestra grande y centrada
             imagesHtml = `
               <div class="post-image-container w-full bg-stone-100">
                 <img src="${images[0]}" alt="Imagen del post" class="w-full h-full object-contain">
               </div>
             `;
           } else if (images.length > 1) {
-            // Múltiples imágenes: cuadrícula responsive
             const cols = images.length === 2 ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3';
             imagesHtml = `
               <div class="grid ${cols} gap-2 p-2">
